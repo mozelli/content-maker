@@ -1,12 +1,12 @@
-const readLine = require('readline-sync');
+const robots = {
+  userInput: require("./robots/user-input"),
+  text: require("./robots/text.js")
+}
 
-function start() {
+async function start() {
   const content = {};
-  content.searchTerm = returnSearchTerm();
-
-  function returnSearchTerm() {
-    return readLine.question("Informe um termo de busca: ");
-  }
+  robots.userInput(content);
+  await robots.text(content);
 
   console.log(content);
 }
