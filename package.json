@@ -4,7 +4,7 @@
   "description": "Projeto open source para criar conteúdos para redes sociais.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "node src/index.js"
   },
   "repository": {
     "type": "git",
@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/mozelli/content-maker/issues"
   },
-  "homepage": "https://github.com/mozelli/content-maker#readme"
+  "homepage": "https://github.com/mozelli/content-maker#readme",
+  "devDependencies": {
+    "readline-sync": "^1.4.10"
+  }
 }
