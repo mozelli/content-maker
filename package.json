@@ -26,6 +26,7 @@
     "cheerio": "^1.0.0-rc.12",
     "dotenv": "^16.0.3",
     "google-auth-library": "^8.7.0",
+    "googleapis": "^113.0.0",
     "sbd": "^1.0.19"
   }
 }
