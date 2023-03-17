@@ -1,11 +1,18 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
+const language = require('@google-cloud/language');
+const sentenceBoundaryDetection = require('sbd')
+const state = require('./state.js');
 
-async function robot(content) {
+async function robot() {
+  const content = state.load();
   await fetchContentFromWikipedia(content);
-  scrapContentAndCreateSentences(content);
-  sanitizeSentences(content);
-  createSentences(content);
+  scrapContentFromWikipedia(content);
+  sanitizeContent(content);
+  breakContentIntoSentences(content);
+  limitMaximumSenteces(content);
+  await fetchKeywordsOfAllSentences(content);
+  state.save(content);
   
 
   async function fetchContentFromWikipedia(content) {
@@ -13,7 +20,7 @@ async function robot(content) {
     content.sourceContentOriginal = result.data;
   }
 
-  function scrapContentAndCreateSentences(content) {
+  function scrapContentFromWikipedia(content) {
     const html = content.sourceContentOriginal;
     const $ = cheerio.load(html);
     let text = "";
@@ -25,7 +32,7 @@ async function robot(content) {
     content.sourceContentOriginal = text;
   }
 
-  function sanitizeSentences(content) {
+  function sanitizeContent(content) {
     const contentClear = clear(content.sourceContentOriginal);
     content.sourceContentSanitized = contentClear;
 
@@ -33,36 +40,70 @@ async function robot(content) {
       const lines = text.split("\n");
       const reg = new RegExp(/\[[1-9]\]|\[[1-9][0-9]\]|\[[[:word:]][[:word:]][[:word:]][[:word:]][[:word:]]]/mg);
       
-      const linesClear = lines.map((line) => {
+      const withoutBlankLines = lines.filter((line) => {
+        if(line.length == 0) {
+          return false;
+        }
+        return true;
+      });
+
+      const linesClear = withoutBlankLines.map((line) => {
         const result = line.replace(reg, "");
         const resultNoNotesBreackets = result.replace(/\[([a-zA-Z]{4}\s[1-9]\])/mg, "");
-        return resultNoNotesBreackets.replace(".", ". ").trim();
-      })
-      return linesClear;
+        const resultNoParenthesis = resultNoNotesBreackets.replace(/\((?:\([^()]*\)|[^()])*\)/gm, '').replace(/  /g,' ')
+        return resultNoParenthesis;
+      });
+
+      return linesClear.join(" ");
     }
   }
 
-  function createSentences(content) {
-    content.sentences = [];
-    content.sourceContentSanitized.map((sentence) => {
+  function breakContentIntoSentences(content) {
+    content.sentences = []
+
+    const sentences = sentenceBoundaryDetection.sentences(content.sourceContentSanitized)
+    sentences.forEach((sentence) => {
       content.sentences.push({
         text: sentence,
-        keyword: [],
+        keywords: [],
         images: []
-      });
+      })
     })
   }
 
-  // const itemBreak = item.split(".")
-  //     itemBreak.map((item2)  => {
-  //       if(item2.length > 0){
-  //         const reg = new RegExp(/\[[1-9]\]|\[[1-9][0-9]\]|\[[[:word:]][[:word:]][[:word:]][[:word:]][[:word:]]]/mg);
-  //         const result = item2.replace(reg, "");
-  //         const resultNobreack = result.replace(/\[([a-zA-Z]{4}\s[1-9]\])/mg, "");
-  //         const resultNoSpaces = resultNobreack.trim();
-  //         content.sentences.push(resultNoSpaces);
-  //       }
-  //     })
+  function limitMaximumSenteces(content) {
+    content.sentences = content.sentences.slice(0, content.maximumSentences);
+  }
+
+  async function fetchKeywordsOfAllSentences(content) {
+    for(const sentence of content.sentences) {
+      sentence.keywords = await fetchGoogleAndReturnKeywords(sentence.text);
+    }
+  }
+
+  async function fetchGoogleAndReturnKeywords(sentence) {
+    //Cria uma nova instância do cliente de Análise de Sentimento
+    const client = new language.LanguageServiceClient({
+      keyFilename: "./src/robots/secrets/content-maker.json"  
+    });
+    const document = {
+      content: sentence,
+      type: 'PLAIN_TEXT',
+    };
+    return new Promise((resolve, reject) => {
+      client.analyzeEntities({ document }).
+      then(([result]) => {
+        let keywords = result.entities.map((item) => {
+          if(item.salience >= 0.05)
+          return {keyword: item.name, salience: item.salience}
+        })
+        resolve(keywords);
+      })
+      .catch((error) => {
+        reject(error);
+      });
+    }) 
+  }
 }
 
 module.exports = robot
