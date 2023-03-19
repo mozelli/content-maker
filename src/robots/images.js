@@ -1,10 +1,15 @@
 const state = require('./state.js');
 const google = require('googleapis').google;
 const googleCredentials = require("./secrets/content-maker.json");
+const imageDownloader = require("image-downloader");
+const path = require("path");
 
 async function robot() {
   const content = state.load();
+
   await fecthImagesOfAllSentences(content);
+  await downloadAllImages(content);
+  
   state.save(content);
 
   async function fecthImagesOfAllSentences(content) {
@@ -14,10 +19,6 @@ async function robot() {
       sentence.googleSearchQuery = query;
     }
   }
-
-  const imagesArray = await fetchGoogleAndReturnImagesLiks("Anya Taylor-Joy");
-  // console.dir(content, { depth: null });
-  // process.exit(0);
 
   async function fetchGoogleAndReturnImagesLiks(query) {
     const customSearch = google.customsearch('v1');
@@ -35,6 +36,37 @@ async function robot() {
       return item.link
     });
     return imageUrl;
+  }
+
+  async function downloadAllImages(content) {
+    content.downloadedImages = [];
+
+    for(let sentenceIndex = 0; sentenceIndex < content.sentences.length; sentenceIndex++) {
+      const images = content.sentences[sentenceIndex].images;
+
+      for(let imageIndex = 0; imageIndex < images.length; imageIndex++) {
+        const imageUrl = images[imageIndex];
+
+        try {
+          if(content.downloadedImages.includes(imageUrl)) {
+            throw new Error("A imagem já foi baixada.")
+          }
+          await downloadAndSave(imageUrl, `${sentenceIndex}-original.png`);
+          content.downloadedImages.push(imageUrl);
+          console.log(`> [${sentenceIndex}][${imageIndex}] Baixou a imagem com sucesso! (${imageUrl})`);
+          break;
+        } catch(error) {
+          console.log(`Erro ao baixar a imagem (${imageUrl}): ${error}.`)
+        }
+      }
+    }
+  }
+
+  async function downloadAndSave(url, fileName) {
+    return imageDownloader.image({
+      url: url,
+      dest: path.join(__dirname, `/content/${fileName}`)
+    })
   }
 }
 
