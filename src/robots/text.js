@@ -10,17 +10,19 @@ async function robot() {
   scrapContentFromWikipedia(content);
   sanitizeContent(content);
   breakContentIntoSentences(content);
-  limitMaximumSenteces(content);
+  //limitMaximumSenteces(content);
   await fetchKeywordsOfAllSentences(content);
   state.save(content);
   
 
   async function fetchContentFromWikipedia(content) {
+    console.log("> Fetching content from Wikipedia...");
     const result = await axios(content.url);
     content.sourceContentOriginal = result.data;
   }
 
   function scrapContentFromWikipedia(content) {
+    console.log("> Scraping content from Wikipedia...");
     const html = content.sourceContentOriginal;
     const $ = cheerio.load(html);
     let text = "";
@@ -33,6 +35,7 @@ async function robot() {
   }
 
   function sanitizeContent(content) {
+    console.log("> Sanitizing original content...");
     const contentClear = clear(content.sourceContentOriginal);
     content.sourceContentSanitized = contentClear;
 
@@ -59,13 +62,14 @@ async function robot() {
   }
 
   function breakContentIntoSentences(content) {
+    console.log("> Breaking content into sentences...");
     content.sentences = []
 
     const sentences = sentenceBoundaryDetection.sentences(content.sourceContentSanitized)
     sentences.forEach((sentence) => {
       content.sentences.push({
         text: sentence,
-        keywords: [],
+        keywords: "",
         images: []
       })
     })
@@ -76,6 +80,7 @@ async function robot() {
   }
 
   async function fetchKeywordsOfAllSentences(content) {
+    console.log("> Fetching keywords for all sentences...");
     for(const sentence of content.sentences) {
       sentence.keywords = await fetchGoogleAndReturnKeywords(sentence.text);
     }
@@ -93,11 +98,15 @@ async function robot() {
     return new Promise((resolve, reject) => {
       client.analyzeEntities({ document }).
       then(([result]) => {
+        const searchTerm = content.searchTerm;
         let keywords = result.entities.map((item) => {
-          if(item.salience >= 0.04)
-          return {keyword: item.name, salience: item.salience}
+          if(item.salience >= 0.09) {
+            if(!content.searchTerm.includes(item.name)){
+              return item.name;
+            }
+          }
         })
-        resolve(keywords);
+        resolve(keywords.join(" "));
       })
       .catch((error) => {
         reject(error);
