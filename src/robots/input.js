@@ -7,12 +7,12 @@ function robot() {
   };
   askAndReturnForSearchTerm();
   state.save(content);
+  //console.dir(content, {depth: null});
 
   function askAndReturnForSearchTerm() {
     let term = readline.question("Informe um termo de busca: ");
-    let aux = term.split(" ");
-    content.searchTerm = aux.join("_");
-    content.url = `https://en.wikipedia.org/wiki/${content.searchTerm}`;
+    let termSplited = term.split(" ");
+    content.url = `https://en.wikipedia.org/wiki/${termSplited.join("_")}`;
   }
 }
 
