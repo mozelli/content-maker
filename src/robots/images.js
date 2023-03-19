@@ -30,7 +30,7 @@ async function robot() {
       q: query,
       searchType: 'image',
       imgSize: 'huge',
-      num: 2
+      num: 4
     });
     const imageUrl = response.data.items.map((item) => {
       return item.link
