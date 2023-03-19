@@ -94,7 +94,7 @@ async function robot() {
       client.analyzeEntities({ document }).
       then(([result]) => {
         let keywords = result.entities.map((item) => {
-          if(item.salience >= 0.05)
+          if(item.salience >= 0.04)
           return {keyword: item.name, salience: item.salience}
         })
         resolve(keywords);
