@@ -1,3 +1,8 @@
+# Sensible files
+src/robots/secrets
+content.json
+*.png
+
 # Logs
 logs
 *.log
@@ -40,8 +45,6 @@ build/Release
 # Dependency directories
 node_modules/
 jspm_packages/
-src/robots/secrets
-content.json
 
 # TypeScript v1 declaration files
 typings/

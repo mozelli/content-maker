@@ -3,16 +3,17 @@ const state = require('./state.js');
 
 function robot() {
   const content = {
-    maximumSentences: 7
+    maximumSentences: 20
   };
   askAndReturnForSearchTerm();
   state.save(content);
+  //console.dir(content, {depth: null});
 
   function askAndReturnForSearchTerm() {
     let term = readline.question("Informe um termo de busca: ");
-    let aux = term.split(" ");
-    content.searchTerm = aux.join("_");
-    content.url = `https://en.wikipedia.org/wiki/${content.searchTerm}`;
+    content.searchTerm = term;
+    let termSplited = term.split(" ");
+    content.url = `https://en.wikipedia.org/wiki/${termSplited.join("_")}`;
   }
 }
 
