@@ -1,3 +1,4 @@
+const path = require("path");
 const robots = {
   input: require("./robots/input.js"),
   text: require("./robots/text.js"),
@@ -10,8 +11,10 @@ async function start() {
   await robots.text();
   await robots.image();
 
-  // const content = robots.state.load();
+  /* Uncomment to see the content file in console
+  const content = robots.state.load();
   console.dir(content, {depth: null});
+  */
 }
 
 start();
