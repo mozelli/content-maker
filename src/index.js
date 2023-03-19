@@ -11,10 +11,9 @@ async function start() {
   await robots.text();
   await robots.image();
 
-  /* Uncomment to see the content file in console
-  const content = robots.state.load();
-  console.dir(content, {depth: null});
-  */
+  // Uncomment to see the content file in console
+  // const content = robots.state.load();
+  // console.dir(content, {depth: null});
 }
 
 start();

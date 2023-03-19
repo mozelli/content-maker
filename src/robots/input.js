@@ -13,7 +13,8 @@ function robot() {
     let term = readline.question("Informe um termo de busca: ");
     content.searchTerm = term;
     let termSplited = term.split(" ");
-    content.url = `https://en.wikipedia.org/wiki/${termSplited.join("_")}`;
+    //content.url = `https://en.wikipedia.org/wiki/${termSplited.join("_")}`;
+    content.url = `https://pt.wikipedia.org/wiki/${termSplited.join("_")}`;
   }
 }
 

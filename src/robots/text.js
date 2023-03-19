@@ -94,6 +94,7 @@ async function robot() {
     const document = {
       content: sentence,
       type: 'PLAIN_TEXT',
+      language: 'pt-BR' // omit to english
     };
     return new Promise((resolve, reject) => {
       client.analyzeEntities({ document }).
